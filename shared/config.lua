@@ -6,7 +6,7 @@
 
 Options = {}
 
-Options.debug = true
+Options.debug = false
 
 Options.key = "PAGEUP"      -- key to show/hide Ui Sports
 

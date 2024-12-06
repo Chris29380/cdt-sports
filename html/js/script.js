@@ -55,7 +55,6 @@ function loaddatas(){
                 }
             }
         } 
-        console.log("width value strength : "+widthvalue)
         $("body .content .boxstrength .valuebox .lvl").html(htmlLabel)
         $("body .content .boxstrength .valuebox .barre .inbarre").css("width",widthvalue+"%")
     }
@@ -88,7 +87,6 @@ function loaddatas(){
                 }
             }
         } 
-        console.log("width value run : "+widthvalue)
         $("body .content .boxrun .valuebox .lvl").html(htmlLabel)
         $("body .content .boxrun .valuebox .barre .inbarre").css("width",widthvalue+"%")
     }
@@ -121,7 +119,6 @@ function loaddatas(){
                 }
             }
         } 
-        console.log("width value swim : "+widthvalue)
         $("body .content .boxswim .valuebox .lvl").html(htmlLabel)
         $("body .content .boxswim .valuebox .barre .inbarre").css("width",widthvalue+"%")
     }

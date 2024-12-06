@@ -58,6 +58,7 @@ AddEventHandler("cdtsports:getdatas", function (datasports)
     TriggerEvent("cdtsports:majdatasloop")
     TriggerEvent("cdtsports:showUi")
     TriggerEvent("cdtsports:majdatasUi")
+    TriggerEvent("cdtsports:isalive")
 end)
 
 ---------------------------------------------------------------
@@ -160,27 +161,41 @@ AddEventHandler("cdtsports:startloopstrength", function ()
         while true do
             inanim = false
             inaction = false
-            if Options["strength"].anims and #Options["strength"].anims > 0 then
-                for i = 1, #Options["strength"].anims do
-                    if IsEntityPlayingAnim(PlayerPedId(), Options["strength"].anims[i].dict, Options["strength"].anims[i].anim, 3) then
-                        if datasp.strength <= Options["strength"].levels.lvl5 then
-                            datasp.strength = datasp.strength + Options["strength"].anims[i].add
-                            inanim = true
-                            if Options.debug then
-                                print("strength : "..datasp.strength) 
-                            end 
+            if not IsEntityDead(PlayerPedId()) then
+                if Options["strength"].anims and #Options["strength"].anims > 0 then
+                    for i = 1, #Options["strength"].anims do
+                        if IsEntityPlayingAnim(PlayerPedId(), Options["strength"].anims[i].dict, Options["strength"].anims[i].anim, 3) then
+                            if datasp.strength <= Options["strength"].levels.lvl5 then
+                                datasp.strength = datasp.strength + Options["strength"].anims[i].add
+                                inanim = true
+                                if Options.debug then
+                                    print("strength : "..datasp.strength) 
+                                end 
+                            end
+                        end
+                    end 
+                end
+    
+                if Options["strength"].fight.value == true then
+                    local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
+                    local target = GetMeleeTargetForPed(PlayerPedId())
+                    if inmeleecombat then
+                        if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                            if datasp.strength <= Options["strength"].levels.lvl5 then
+                                datasp.strength = datasp.strength + Options["strength"].fight.add
+                                inaction = true
+                                if Options.debug then
+                                    print("strength : "..datasp.strength) 
+                                end 
+                            end
                         end
                     end
-                end 
-            end
-
-            if Options["strength"].fight.value == true then
-                local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
-                local target = GetMeleeTargetForPed(PlayerPedId())
-                if inmeleecombat then
-                    if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                end
+    
+                if Options["strength"].run.value == true then
+                    if IsPedRunning(PlayerPedId()) then
                         if datasp.strength <= Options["strength"].levels.lvl5 then
-                            datasp.strength = datasp.strength + Options["strength"].fight.add
+                            datasp.strength = datasp.strength + Options["strength"].run.add
                             inaction = true
                             if Options.debug then
                                 print("strength : "..datasp.strength) 
@@ -188,65 +203,53 @@ AddEventHandler("cdtsports:startloopstrength", function ()
                         end
                     end
                 end
-            end
-
-            if Options["strength"].run.value == true then
-                if IsPedRunning(PlayerPedId()) then
-                    if datasp.strength <= Options["strength"].levels.lvl5 then
-                        datasp.strength = datasp.strength + Options["strength"].run.add
-                        inaction = true
-                        if Options.debug then
-                            print("strength : "..datasp.strength) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["strength"].swim.value == true then
-                if IsPedSwimming(PlayerPedId()) then
-                    if datasp.strength <= Options["strength"].levels.lvl5 then
-                        datasp.strength = datasp.strength + Options["strength"].swim.add
-                        inaction = true
-                        if Options.debug then
-                            print("strength : "..datasp.strength) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["strength"].climb.value == true then
-                if IsPedClimbing(PlayerPedId()) then
-                    if datasp.strength <= Options["strength"].levels.lvl5 then
-                        datasp.strength = datasp.strength + Options["strength"].climb.add
-                        inaction = true
-                        if Options.debug then
-                            print("strength : "..datasp.strength) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["strength"].bike.value == true then
-                local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-                if vehicle and vehicle > 0 then
-                    local classveh = GetVehicleClass(vehicle)
-                    if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
-                        if GetEntitySpeed(vehicle) > 0.2 then
-                            if datasp.strength <= Options["strength"].levels.lvl5 then
-                                datasp.strength = datasp.strength + Options["strength"].bike.add
-                                inaction = true
-                                if Options.debug then
-                                    print("strength : "..datasp.strength) 
-                                end 
+    
+                if Options["strength"].swim.value == true then
+                    if IsPedSwimming(PlayerPedId()) then
+                        if datasp.strength <= Options["strength"].levels.lvl5 then
+                            datasp.strength = datasp.strength + Options["strength"].swim.add
+                            inaction = true
+                            if Options.debug then
+                                print("strength : "..datasp.strength) 
                             end 
                         end
                     end
                 end
-            end
-
-            if not inanim and not inaction then
-                if datasp.strength >= Options["strength"].minus then
-                    datasp.strength = datasp.strength - Options["strength"].minus 
+    
+                if Options["strength"].climb.value == true then
+                    if IsPedClimbing(PlayerPedId()) then
+                        if datasp.strength <= Options["strength"].levels.lvl5 then
+                            datasp.strength = datasp.strength + Options["strength"].climb.add
+                            inaction = true
+                            if Options.debug then
+                                print("strength : "..datasp.strength) 
+                            end 
+                        end
+                    end
+                end
+    
+                if Options["strength"].bike.value == true then
+                    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+                    if vehicle and vehicle > 0 then
+                        local classveh = GetVehicleClass(vehicle)
+                        if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
+                            if GetEntitySpeed(vehicle) > 0.2 then
+                                if datasp.strength <= Options["strength"].levels.lvl5 then
+                                    datasp.strength = datasp.strength + Options["strength"].bike.add
+                                    inaction = true
+                                    if Options.debug then
+                                        print("strength : "..datasp.strength) 
+                                    end 
+                                end 
+                            end
+                        end
+                    end
+                end
+    
+                if not inanim and not inaction then
+                    if datasp.strength >= Options["strength"].minus then
+                        datasp.strength = datasp.strength - Options["strength"].minus 
+                    end
                 end
             end
 
@@ -269,27 +272,41 @@ AddEventHandler("cdtsports:startlooprun", function ()
         while true do
             inanim = false
             inaction = false
-            if Options["run"].anims and #Options["run"].anims > 0 then
-                for i = 1, #Options["run"].anims do
-                    if IsEntityPlayingAnim(PlayerPedId(), Options["run"].anims[i].dict, Options["run"].anims[i].anim, 3) then
-                        if datasp.run <= Options["run"].levels.lvl5 then
-                            datasp.run = datasp.run + Options["run"].anims[i].add
-                            inanim = true
-                            if Options.debug then
-                                print("run : "..datasp.run) 
-                            end 
+            if not IsEntityDead(PlayerPedId()) then
+                if Options["run"].anims and #Options["run"].anims > 0 then
+                    for i = 1, #Options["run"].anims do
+                        if IsEntityPlayingAnim(PlayerPedId(), Options["run"].anims[i].dict, Options["run"].anims[i].anim, 3) then
+                            if datasp.run <= Options["run"].levels.lvl5 then
+                                datasp.run = datasp.run + Options["run"].anims[i].add
+                                inanim = true
+                                if Options.debug then
+                                    print("run : "..datasp.run) 
+                                end 
+                            end
+                        end
+                    end 
+                end
+    
+                if Options["run"].fight.value == true then
+                    local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
+                    local target = GetMeleeTargetForPed(PlayerPedId())
+                    if inmeleecombat then
+                        if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                            if datasp.run <= Options["run"].levels.lvl5 then
+                                datasp.run = datasp.run + Options["run"].fight.add
+                                inaction = true
+                                if Options.debug then
+                                    print("run : "..datasp.run) 
+                                end 
+                            end
                         end
                     end
-                end 
-            end
-
-            if Options["run"].fight.value == true then
-                local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
-                local target = GetMeleeTargetForPed(PlayerPedId())
-                if inmeleecombat then
-                    if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                end
+    
+                if Options["run"].run.value == true then
+                    if IsPedRunning(PlayerPedId()) then
                         if datasp.run <= Options["run"].levels.lvl5 then
-                            datasp.run = datasp.run + Options["run"].fight.add
+                            datasp.run = datasp.run + Options["run"].run.add
                             inaction = true
                             if Options.debug then
                                 print("run : "..datasp.run) 
@@ -297,65 +314,53 @@ AddEventHandler("cdtsports:startlooprun", function ()
                         end
                     end
                 end
-            end
-
-            if Options["run"].run.value == true then
-                if IsPedRunning(PlayerPedId()) then
-                    if datasp.run <= Options["run"].levels.lvl5 then
-                        datasp.run = datasp.run + Options["run"].run.add
-                        inaction = true
-                        if Options.debug then
-                            print("run : "..datasp.run) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["run"].swim.value == true then
-                if IsPedSwimming(PlayerPedId()) then
-                    if datasp.run <= Options["run"].levels.lvl5 then
-                        datasp.run = datasp.run + Options["run"].swim.add
-                        inaction = true
-                        if Options.debug then
-                            print("run : "..datasp.run) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["run"].climb.value == true then
-                if IsPedClimbing(PlayerPedId()) then
-                    if datasp.run <= Options["run"].levels.lvl5 then
-                        datasp.run = datasp.run + Options["run"].climb.add
-                        inaction = true
-                        if Options.debug then
-                            print("run : "..datasp.run) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["run"].bike.value == true then
-                local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-                if vehicle and vehicle > 0 then
-                    local classveh = GetVehicleClass(vehicle)
-                    if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
-                        if GetEntitySpeed(vehicle) > 0.2 then
-                            if datasp.run <= Options["run"].levels.lvl5 then
-                                datasp.run = datasp.run + Options["run"].bike.add
-                                inaction = true
-                                if Options.debug then
-                                    print("run : "..datasp.run) 
-                                end 
+    
+                if Options["run"].swim.value == true then
+                    if IsPedSwimming(PlayerPedId()) then
+                        if datasp.run <= Options["run"].levels.lvl5 then
+                            datasp.run = datasp.run + Options["run"].swim.add
+                            inaction = true
+                            if Options.debug then
+                                print("run : "..datasp.run) 
                             end 
                         end
                     end
                 end
-            end
-
-            if not inanim and not inaction then
-                if datasp.run >= Options["run"].minus then
-                    datasp.run = datasp.run - Options["run"].minus 
+    
+                if Options["run"].climb.value == true then
+                    if IsPedClimbing(PlayerPedId()) then
+                        if datasp.run <= Options["run"].levels.lvl5 then
+                            datasp.run = datasp.run + Options["run"].climb.add
+                            inaction = true
+                            if Options.debug then
+                                print("run : "..datasp.run) 
+                            end 
+                        end
+                    end
+                end
+    
+                if Options["run"].bike.value == true then
+                    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+                    if vehicle and vehicle > 0 then
+                        local classveh = GetVehicleClass(vehicle)
+                        if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
+                            if GetEntitySpeed(vehicle) > 0.2 then
+                                if datasp.run <= Options["run"].levels.lvl5 then
+                                    datasp.run = datasp.run + Options["run"].bike.add
+                                    inaction = true
+                                    if Options.debug then
+                                        print("run : "..datasp.run) 
+                                    end 
+                                end 
+                            end
+                        end
+                    end
+                end
+    
+                if not inanim and not inaction then
+                    if datasp.run >= Options["run"].minus then
+                        datasp.run = datasp.run - Options["run"].minus 
+                    end
                 end
             end
 
@@ -378,94 +383,96 @@ AddEventHandler("cdtsports:startloopswim", function ()
         while true do
             inanim = false
             inaction = false
-            if Options["swim"].anims and #Options["swim"].anims > 0 then
-                for i = 1, #Options["swim"].anims do
-                    if IsEntityPlayingAnim(PlayerPedId(), Options["swim"].anims[i].dict, Options["swim"].anims[i].anim, 3) then
+            if not IsEntityDead(PlayerPedId()) then
+                if Options["swim"].anims and #Options["swim"].anims > 0 then
+                    for i = 1, #Options["swim"].anims do
+                        if IsEntityPlayingAnim(PlayerPedId(), Options["swim"].anims[i].dict, Options["swim"].anims[i].anim, 3) then
+                            if datasp.swim <= Options["swim"].levels.lvl5 then
+                                datasp.swim = datasp.swim + Options["swim"].anims[i].add
+                                inanim = true
+                                if Options.debug then
+                                    print("swim : "..datasp.swim) 
+                                end 
+                            end
+                        end
+                    end 
+                end
+    
+                if Options["swim"].fight.value == true then
+                    local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
+                    local target = GetMeleeTargetForPed(PlayerPedId())
+                    if inmeleecombat then
+                        if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                            if datasp.swim <= Options["swim"].levels.lvl5 then
+                                datasp.swim = datasp.run + Options["swim"].fight.add
+                                inaction = true
+                                if Options.debug then
+                                    print("swim : "..datasp.run) 
+                                end 
+                            end
+                        end
+                    end
+                end
+    
+                if Options["swim"].run.value == true then
+                    if IsPedRunning(PlayerPedId()) then
                         if datasp.swim <= Options["swim"].levels.lvl5 then
-                            datasp.swim = datasp.swim + Options["swim"].anims[i].add
-                            inanim = true
+                            datasp.swim = datasp.swim + Options["swim"].run.add
+                            inaction = true
                             if Options.debug then
                                 print("swim : "..datasp.swim) 
                             end 
                         end
                     end
-                end 
-            end
-
-            if Options["swim"].fight.value == true then
-                local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
-                local target = GetMeleeTargetForPed(PlayerPedId())
-                if inmeleecombat then
-                    if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                end
+    
+                if Options["swim"].swim.value == true then
+                    if IsPedSwimming(PlayerPedId()) then
                         if datasp.swim <= Options["swim"].levels.lvl5 then
-                            datasp.swim = datasp.run + Options["swim"].fight.add
+                            datasp.swim = datasp.swim + Options["swim"].swim.add
                             inaction = true
                             if Options.debug then
-                                print("swim : "..datasp.run) 
+                                print("swim : "..datasp.swim) 
                             end 
                         end
                     end
                 end
-            end
-
-            if Options["swim"].run.value == true then
-                if IsPedRunning(PlayerPedId()) then
-                    if datasp.swim <= Options["swim"].levels.lvl5 then
-                        datasp.swim = datasp.swim + Options["swim"].run.add
-                        inaction = true
-                        if Options.debug then
-                            print("swim : "..datasp.swim) 
-                        end 
+    
+                if Options["swim"].climb.value == true then
+                    if IsPedClimbing(PlayerPedId()) then
+                        if datasp.swim <= Options["swim"].levels.lvl5 then
+                            datasp.swim = datasp.swim + Options["swim"].climb.add
+                            inaction = true
+                            if Options.debug then
+                                print("swim : "..datasp.swim) 
+                            end 
+                        end
                     end
                 end
-            end
-
-            if Options["swim"].swim.value == true then
-                if IsPedSwimming(PlayerPedId()) then
-                    if datasp.swim <= Options["swim"].levels.lvl5 then
-                        datasp.swim = datasp.swim + Options["swim"].swim.add
-                        inaction = true
-                        if Options.debug then
-                            print("swim : "..datasp.swim) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["swim"].climb.value == true then
-                if IsPedClimbing(PlayerPedId()) then
-                    if datasp.swim <= Options["swim"].levels.lvl5 then
-                        datasp.swim = datasp.swim + Options["swim"].climb.add
-                        inaction = true
-                        if Options.debug then
-                            print("swim : "..datasp.swim) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["swim"].bike.value == true then
-                local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-                if vehicle and vehicle > 0 then
-                    local classveh = GetVehicleClass(vehicle)
-                    if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
-                        if GetEntitySpeed(vehicle) > 0.2 then
-                            if datasp.swim <= Options["swim"].levels.lvl5 then
-                                datasp.swim = datasp.swim + Options["swim"].bike.add
-                                inaction = true
-                                if Options.debug then
-                                    print("swim : "..datasp.swim) 
+    
+                if Options["swim"].bike.value == true then
+                    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+                    if vehicle and vehicle > 0 then
+                        local classveh = GetVehicleClass(vehicle)
+                        if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
+                            if GetEntitySpeed(vehicle) > 0.2 then
+                                if datasp.swim <= Options["swim"].levels.lvl5 then
+                                    datasp.swim = datasp.swim + Options["swim"].bike.add
+                                    inaction = true
+                                    if Options.debug then
+                                        print("swim : "..datasp.swim) 
+                                    end 
                                 end 
-                            end 
+                            end
                         end
                     end
                 end
-            end
-
-
-            if not inanim and not inaction then
-                if datasp.swim >= Options["swim"].minus then
-                    datasp.swim = datasp.swim - Options["swim"].minus 
+    
+    
+                if not inanim and not inaction then
+                    if datasp.swim >= Options["swim"].minus then
+                        datasp.swim = datasp.swim - Options["swim"].minus 
+                    end
                 end
             end
 
@@ -488,27 +495,41 @@ AddEventHandler("cdtsports:startloopcardio", function ()
         while true do
             inanim = false
             inaction = false
-            if Options["cardio"].anims and #Options["cardio"].anims > 0 then
-                for i = 1, #Options["cardio"].anims do
-                    if IsEntityPlayingAnim(PlayerPedId(), Options["cardio"].anims[i].dict, Options["cardio"].anims[i].anim, 3) then
-                        if datasp.cardio <= Options["cardio"].levels.lvl5 then
-                            datasp.cardio = datasp.cardio + Options["cardio"].anims[i].add
-                            inanim = true
-                            if Options.debug then
-                                print("cardio : "..datasp.cardio) 
-                            end 
+            if not IsEntityDead(PlayerPedId()) then
+                if Options["cardio"].anims and #Options["cardio"].anims > 0 then
+                    for i = 1, #Options["cardio"].anims do
+                        if IsEntityPlayingAnim(PlayerPedId(), Options["cardio"].anims[i].dict, Options["cardio"].anims[i].anim, 3) then
+                            if datasp.cardio <= Options["cardio"].levels.lvl5 then
+                                datasp.cardio = datasp.cardio + Options["cardio"].anims[i].add
+                                inanim = true
+                                if Options.debug then
+                                    print("cardio : "..datasp.cardio) 
+                                end 
+                            end
+                        end
+                    end 
+                end
+    
+                if Options["cardio"].fight.value == true then
+                    local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
+                    local target = GetMeleeTargetForPed(PlayerPedId())
+                    if inmeleecombat then
+                        if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                            if datasp.cardio <= Options["cardio"].levels.lvl5 then
+                                datasp.cardio = datasp.cardio + Options["cardio"].fight.add
+                                inaction = true
+                                if Options.debug then
+                                    print("cardio : "..datasp.cardio) 
+                                end 
+                            end
                         end
                     end
-                end 
-            end
-
-            if Options["cardio"].fight.value == true then
-                local inmeleecombat = IsPedInMeleeCombat(PlayerPedId())
-                local target = GetMeleeTargetForPed(PlayerPedId())
-                if inmeleecombat then
-                    if DoesEntityExist(target) and GetEntityHealth(target) > 0 then
+                end
+    
+                if Options["cardio"].run.value == true then
+                    if IsPedRunning(PlayerPedId()) then
                         if datasp.cardio <= Options["cardio"].levels.lvl5 then
-                            datasp.cardio = datasp.cardio + Options["cardio"].fight.add
+                            datasp.cardio = datasp.cardio + Options["cardio"].run.add
                             inaction = true
                             if Options.debug then
                                 print("cardio : "..datasp.cardio) 
@@ -516,65 +537,53 @@ AddEventHandler("cdtsports:startloopcardio", function ()
                         end
                     end
                 end
-            end
-
-            if Options["cardio"].run.value == true then
-                if IsPedRunning(PlayerPedId()) then
-                    if datasp.cardio <= Options["cardio"].levels.lvl5 then
-                        datasp.cardio = datasp.cardio + Options["cardio"].run.add
-                        inaction = true
-                        if Options.debug then
-                            print("cardio : "..datasp.cardio) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["cardio"].swim.value == true then
-                if IsPedSwimming(PlayerPedId()) then
-                    if datasp.cardio <= Options["cardio"].levels.lvl5 then
-                        datasp.cardio = datasp.cardio + Options["cardio"].swim.add
-                        inaction = true
-                        if Options.debug then
-                            print("cardio : "..datasp.cardio) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["cardio"].climb.value == true then
-                if IsPedClimbing(PlayerPedId()) then
-                    if datasp.cardio <= Options["cardio"].levels.lvl5 then
-                        datasp.cardio = datasp.cardio + Options["cardio"].climb.add
-                        inaction = true
-                        if Options.debug then
-                            print("cardio : "..datasp.cardio) 
-                        end 
-                    end
-                end
-            end
-
-            if Options["cardio"].bike.value == true then
-                local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-                if vehicle and vehicle > 0 then
-                    local classveh = GetVehicleClass(vehicle)
-                    if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
-                        if GetEntitySpeed(vehicle) > 0.2 then
-                            if datasp.cardio <= Options["cardio"].levels.lvl5 then
-                                datasp.cardio = datasp.cardio + Options["cardio"].bike.add
-                                inaction = true
-                                if Options.debug then
-                                    print("cardio : "..datasp.cardio) 
-                                end 
+    
+                if Options["cardio"].swim.value == true then
+                    if IsPedSwimming(PlayerPedId()) then
+                        if datasp.cardio <= Options["cardio"].levels.lvl5 then
+                            datasp.cardio = datasp.cardio + Options["cardio"].swim.add
+                            inaction = true
+                            if Options.debug then
+                                print("cardio : "..datasp.cardio) 
                             end 
                         end
                     end
                 end
-            end
-
-            if not inanim and not inaction then
-                if datasp.cardio >= Options["cardio"].minus then
-                    datasp.cardio = datasp.cardio - Options["cardio"].minus 
+    
+                if Options["cardio"].climb.value == true then
+                    if IsPedClimbing(PlayerPedId()) then
+                        if datasp.cardio <= Options["cardio"].levels.lvl5 then
+                            datasp.cardio = datasp.cardio + Options["cardio"].climb.add
+                            inaction = true
+                            if Options.debug then
+                                print("cardio : "..datasp.cardio) 
+                            end 
+                        end
+                    end
+                end
+    
+                if Options["cardio"].bike.value == true then
+                    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+                    if vehicle and vehicle > 0 then
+                        local classveh = GetVehicleClass(vehicle)
+                        if classveh == 13 and (GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()) then
+                            if GetEntitySpeed(vehicle) > 0.2 then
+                                if datasp.cardio <= Options["cardio"].levels.lvl5 then
+                                    datasp.cardio = datasp.cardio + Options["cardio"].bike.add
+                                    inaction = true
+                                    if Options.debug then
+                                        print("cardio : "..datasp.cardio) 
+                                    end 
+                                end 
+                            end
+                        end
+                    end
+                end
+    
+                if not inanim and not inaction then
+                    if datasp.cardio >= Options["cardio"].minus then
+                        datasp.cardio = datasp.cardio - Options["cardio"].minus 
+                    end
                 end
             end
 

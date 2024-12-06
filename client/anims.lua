@@ -62,18 +62,34 @@ function AddPropToPlayer(prop1, bone, off1, off2, off3, rot1, rot2, rot3, textur
     SetModelAsNoLongerNeeded(prop1)
 end
 
+RegisterNetEvent("cdtsports:isalive")
+AddEventHandler("cdtsports:isalive", function ()
+    Citizen.CreateThread(function ()
+        while true do
+            if IsEntityDead(PlayerPedId()) then
+                cleanplayer()
+            end
+            Wait(1500)
+        end
+    end)
+end)
+
 RegisterKeyMapping('canim', 'Stop Animation', 'keyboard', 'NUMPAD0')
 RegisterKeyMapping('abdos', 'Abdos', 'keyboard', 'NUMPAD1')
 RegisterKeyMapping('pushup', 'PushUp', 'keyboard', 'NUMPAD2')
 RegisterKeyMapping('barremuscu', 'Barre Muscu', 'keyboard', 'NUMPAD3')
 
-RegisterCommand("canim", function()
-    ClearPedTasks(ESX.PlayerData.ped)
+function cleanplayer()
+    ClearPedTasks(PlayerPedId())
     if propsplayer then
         for k,v in pairs(propsplayer) do
             DeleteEntity(v.idprop)
         end
     end
+end
+
+RegisterCommand("canim", function()
+    cleanplayer()
 end, false)
 
 RegisterCommand("pushup", function ()
